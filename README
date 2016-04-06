@@ -1,0 +1,55 @@
+	       README file for lvm-mib Version: 0.1
+
+DISCLAIMER
+
+  The Authors assume no responsibility for damage or loss of system
+  performance as a direct or indirect result of the use of this
+  software.  This software is provided "as is" without express or
+  implied warranty.
+
+TABLE OF CONTENTS
+
+  Disclaimer
+  Table Of Contents
+  Introduction
+  Installation
+  Usage
+
+
+INTRODUCTION
+
+  This package was developed by the NRCHPC (National Research Center for High Performance Comput  ers) of Chinese. And it is based on the net-snmp version 5.1.2 or higher. 
+  
+  It is used to do with LVM (Logic Volume Management) by net-snmp. Through it you can get the 
+  information of vg(volume group) and lv (logic volume) , and do the operation of lvcreate and 
+  lvremove also.
+ 
+  This README file serves as a starting place to learn about the
+  software, but you must be aware of the usage of net-snmp.
+
+INSTALLATION
+  mibs/LVM-MIB.txt    
+	 the text of the mibs , it should be placed in /use/share/snmp/mibs/
+  perl/mib_lvm.pl      
+	 the handler of the mibs, reponse the snmp request, palced in /etc/snmp better  
+  conf/EXAMPLE.conf    
+         a example of snmpd.conf, you can learn the configuration of snmpd from it.
+	 placed in /etc/snmp better   
+   
+USAGE
+ Get operation
+ snmptable -v 2c  -c public  -m all tcp:127.0.0.1:1161 vgTable   //get the info of all vgs
+ snmptable -v 2c  -c public  -m all tcp;127.0.0.1;1161 lvTable   //get the info of all lvs 
+
+ Set operation
+ Now you have lvcreated 5 lvs , and want to create the sixth lv,  name is lv6 , size is 1024M
+ and in vg of SonD. The command as follows:
+
+    snmpset   -v 2c  -c private -m all tcp:127.0.0.1:1161 lvRowStatus.6 i 5  lvName s lv6   /
+         lvVgname s SonD  lvSize i 1024  lvRowStatus.6 i 2 
+ 
+ then the lv6 is crated successfully. 
+
+ Now you want to lvremove the lv6 and it is in the lvTable is 6 ,the command as follows: 
+     snmpset   -v 2c  -c private -m all tcp:127.0.0.1:1161 lvRowStatus.6 i 6  
+ then the lvs is removed succesfully.  

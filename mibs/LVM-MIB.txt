@@ -1,0 +1,232 @@
+LVM-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, OBJECT-IDENTITY, 
+    Integer32, NOTIFICATION-TYPE             FROM SNMPv2-SMI
+    TEXTUAL-CONVENTION, DisplayString, RowStatus     FROM SNMPv2-TC
+    MODULE-COMPLIANCE, OBJECT-GROUP,
+    NOTIFICATION-GROUP                       FROM SNMPv2-CONF ;
+
+lvmMIB MODULE-IDENTITY
+    LAST-UPDATED "200504290000Z"  --April 29,2005
+    ORGANIZATION "National Research Center for High Performance Computers"
+    CONTACT-INFO
+            "Primary Author: Qu Haiping
+		 postal:    
+		 phone:     +86 10 62659373
+		 email:     quhp@ict.ac.cn
+	 	 www:	    http://www.nrchpc.ac.cn 
+	    "
+    DESCRIPTION
+            "The MIB module to describe generic objects for lvm sub-layers. 
+	     This MIB is used privately for NRCHPC at this moment "
+           
+    ::= { 1 3 6 1 4 1 19039  }
+
+LvmIndex ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "d"
+    STATUS       current
+    DESCRIPTION
+            "A unique value, greater than zero, for each vg or
+            lv in the managed system.  It is
+            recommended that values are assigned contiguously starting
+            from 1."
+    SYNTAX       Integer32 (1..2147483647)
+
+lvmObjects OBJECT-IDENTITY 
+    STATUS    current 
+    DESCRIPTION 
+	 "base information of lvm"
+    ::= { lvmMIB 23 }
+
+vgNumber  OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The number of vgs (regardless of their
+            current state) present on this system."
+    ::= { lvmObjects 1 }
+
+vgTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF VgEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "A list of vgs info.  The number of entries is
+            given by the value of vgNumber."
+    ::= { lvmObjects 2  }
+
+VgEntry ::= SEQUENCE
+{
+    vgIndex  LvmIndex,
+    vgName    DisplayString, 
+    vgSize   Integer32,
+    lvCount  Integer32,
+    lvOpen   Integer32,
+    peSize   Integer32,
+    peAlloc  Integer32
+}
+
+vgEntry OBJECT-TYPE
+    SYNTAX      VgEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "An entry containing management information applicable to a
+            particular vg."
+    INDEX   { vgIndex }
+    ::= { vgTable 1 }
+
+vgIndex OBJECT-TYPE
+    SYNTAX      LvmIndex
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "A unique value, greater than zero, for each vg.  It
+            is recommended that values are assigned contiguously
+            starting from 1. "
+    ::= { vgEntry 1 }
+
+vgName OBJECT-TYPE
+   SYNTAX       DisplayString (SIZE (0..255))
+   MAX-ACCESS   read-only 
+   STATUS       current 
+   DESCRIPTION 
+	"the name of the vg."
+   ::= { vgEntry 2 }
+
+vgSize OBJECT-TYPE
+   SYNTAX       Integer32
+   MAX-ACCESS   read-only 
+   STATUS       current 
+   DESCRIPTION 
+	"the total size of the vg"
+   ::= { vgEntry 3 }
+
+lvCount OBJECT-TYPE
+   SYNTAX       Integer32(0..256)
+   MAX-ACCESS   read-only 
+   STATUS       current 
+   DESCRIPTION 
+	"the number of the created lvs in the vg"
+   ::= { vgEntry 4 }
+
+lvOpen OBJECT-TYPE
+   SYNTAX       Integer32(0..256)
+   MAX-ACCESS   read-only 
+   STATUS       current 
+   DESCRIPTION 
+	"the number of the opened lvs in the vg"
+   ::= { vgEntry 5 }
+
+peSize OBJECT-TYPE
+   SYNTAX       Integer32
+   MAX-ACCESS   read-only 
+   STATUS       current 
+   DESCRIPTION 
+	"the size of the pe"
+   ::= { vgEntry 6 }
+
+peAlloc OBJECT-TYPE
+   SYNTAX       Integer32
+   MAX-ACCESS   read-only 
+   STATUS       current 
+   DESCRIPTION 
+	"the allocated count of the pe"
+   ::= { vgEntry 7 }
+
+lvNumber  OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The number of lvs (regardless of their
+            current state) present on this system."
+    ::= { lvmObjects 3 }
+
+
+lvTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF LvEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "A list of lvs info.  The number of entries is
+            deciede  by the value of lvNumber."
+    ::= { lvmObjects 4  }
+
+LvEntry ::= SEQUENCE 
+{
+    lvIndex  LvmIndex,
+    lvName  DisplayString,
+    lvSize  Integer32,
+    lvVgname DisplayString,
+    lvSnapfrom DisplayString,
+    lvRowStatus RowStatus
+}
+
+lvEntry OBJECT-TYPE
+    SYNTAX      LvEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "An entry containing management information applicable to a
+            particular lv."
+    INDEX   { lvIndex }
+    ::= { lvTable 1 }
+
+lvIndex OBJECT-TYPE
+    SYNTAX      LvmIndex
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+            "A unique value, greater than zero, for each lv.  It
+            is recommended that values are assigned contiguously
+            starting from 1. "
+    ::= { lvEntry 1 }
+
+lvName OBJECT-TYPE
+   SYNTAX       DisplayString 
+   MAX-ACCESS   read-write 
+   STATUS       current 
+   DESCRIPTION 
+	"the name of the lv"
+   ::= { lvEntry 2 }
+
+lvSize OBJECT-TYPE
+   SYNTAX       Integer32
+   MAX-ACCESS   read-write 
+   STATUS       current 
+   DESCRIPTION 
+	"the total size of the lv"
+   ::= { lvEntry 3 }
+
+lvVgname OBJECT-TYPE
+   SYNTAX       DisplayString
+   MAX-ACCESS   read-write 
+   STATUS       current 
+   DESCRIPTION 
+	"the vg that the lv belongs to "
+   ::= { lvEntry 4 }
+
+lvSnapfrom OBJECT-TYPE
+   SYNTAX       DisplayString
+   MAX-ACCESS   read-write 
+   STATUS       current 
+   DESCRIPTION 
+	"the source lv that the current lv snapfrom "
+   ::= { lvEntry 5 }
+
+lvRowStatus OBJECT-TYPE 
+  SYNTAX      RowStatus 
+  MAX-ACCESS  read-write 
+  STATUS      current
+  DESCRIPTION
+	"The status of this conceptual row.
+
+         To create a row in this table, a manager must
+         set this object to either createAndGo(4) or
+         createAndWait(5)."
+   ::= { lvEntry 6 }
+
+END  
