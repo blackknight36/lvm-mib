@@ -1,26 +1,25 @@
 LVM-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
-    MODULE-IDENTITY, OBJECT-TYPE, OBJECT-IDENTITY, 
+    MODULE-IDENTITY, OBJECT-TYPE, OBJECT-IDENTITY,
     Integer32, NOTIFICATION-TYPE             FROM SNMPv2-SMI
     TEXTUAL-CONVENTION, DisplayString, RowStatus     FROM SNMPv2-TC
     MODULE-COMPLIANCE, OBJECT-GROUP,
     NOTIFICATION-GROUP                       FROM SNMPv2-CONF ;
 
 lvmMIB MODULE-IDENTITY
-    LAST-UPDATED "200504290000Z"  --April 29,2005
-    ORGANIZATION "National Research Center for High Performance Computers"
+    LAST-UPDATED "201701171700Z"  -- January 17, 2017
+    ORGANIZATION "Dart Container Corporation"
     CONTACT-INFO
-            "Primary Author: Qu Haiping
-		 postal:    
-		 phone:     +86 10 62659373
-		 email:     quhp@ict.ac.cn
-	 	 www:	    http://www.nrchpc.ac.cn 
+            "Primary Author: Michael Watters
+		 postal:
+		 phone:     517-244-2235
+		 email:     michael.watters@dart.biz
+	 	 www:	    http://www.dart.biz
 	    "
     DESCRIPTION
-            "The MIB module to describe generic objects for lvm sub-layers. 
-	     This MIB is used privately for NRCHPC at this moment "
-           
+            "The MIB module to describe generic objects for lvm sub-layers."
+
     ::= { 1 3 6 1 4 1 19039  }
 
 LvmIndex ::= TEXTUAL-CONVENTION
@@ -33,9 +32,9 @@ LvmIndex ::= TEXTUAL-CONVENTION
             from 1."
     SYNTAX       Integer32 (1..2147483647)
 
-lvmObjects OBJECT-IDENTITY 
-    STATUS    current 
-    DESCRIPTION 
+lvmObjects OBJECT-IDENTITY
+    STATUS    current
+    DESCRIPTION
 	 "base information of lvm"
     ::= { lvmMIB 23 }
 
@@ -60,7 +59,7 @@ vgTable OBJECT-TYPE
 VgEntry ::= SEQUENCE
 {
     vgIndex  LvmIndex,
-    vgName    DisplayString, 
+    vgName   DisplayString,
     vgSize   Integer32,
     lvCount  Integer32,
     lvOpen   Integer32,
@@ -90,50 +89,50 @@ vgIndex OBJECT-TYPE
 
 vgName OBJECT-TYPE
    SYNTAX       DisplayString (SIZE (0..255))
-   MAX-ACCESS   read-only 
-   STATUS       current 
-   DESCRIPTION 
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
 	"the name of the vg."
    ::= { vgEntry 2 }
 
 vgSize OBJECT-TYPE
    SYNTAX       Integer32
-   MAX-ACCESS   read-only 
-   STATUS       current 
-   DESCRIPTION 
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
 	"the total size of the vg"
    ::= { vgEntry 3 }
 
 lvCount OBJECT-TYPE
    SYNTAX       Integer32(0..256)
-   MAX-ACCESS   read-only 
-   STATUS       current 
-   DESCRIPTION 
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
 	"the number of the created lvs in the vg"
    ::= { vgEntry 4 }
 
-lvOpen OBJECT-TYPE
+vgExtentSize OBJECT-TYPE
    SYNTAX       Integer32(0..256)
-   MAX-ACCESS   read-only 
-   STATUS       current 
-   DESCRIPTION 
-	"the number of the opened lvs in the vg"
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+	"the size of the physical extents in the vg"
    ::= { vgEntry 5 }
 
-peSize OBJECT-TYPE
+vgExtentCount OBJECT-TYPE
    SYNTAX       Integer32
-   MAX-ACCESS   read-only 
-   STATUS       current 
-   DESCRIPTION 
-	"the size of the pe"
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+	"the number of physical extents in the vg"
    ::= { vgEntry 6 }
 
-peAlloc OBJECT-TYPE
+vgFreeCount OBJECT-TYPE
    SYNTAX       Integer32
-   MAX-ACCESS   read-only 
-   STATUS       current 
-   DESCRIPTION 
-	"the allocated count of the pe"
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+	"the number of free extents in the vg"
    ::= { vgEntry 7 }
 
 lvNumber  OBJECT-TYPE
@@ -155,7 +154,7 @@ lvTable OBJECT-TYPE
             deciede  by the value of lvNumber."
     ::= { lvmObjects 4  }
 
-LvEntry ::= SEQUENCE 
+LvEntry ::= SEQUENCE
 {
     lvIndex  LvmIndex,
     lvName  DisplayString,
@@ -186,40 +185,40 @@ lvIndex OBJECT-TYPE
     ::= { lvEntry 1 }
 
 lvName OBJECT-TYPE
-   SYNTAX       DisplayString 
-   MAX-ACCESS   read-write 
-   STATUS       current 
-   DESCRIPTION 
+   SYNTAX       DisplayString
+   MAX-ACCESS   read-write
+   STATUS       current
+   DESCRIPTION
 	"the name of the lv"
    ::= { lvEntry 2 }
 
 lvSize OBJECT-TYPE
    SYNTAX       Integer32
-   MAX-ACCESS   read-write 
-   STATUS       current 
-   DESCRIPTION 
+   MAX-ACCESS   read-write
+   STATUS       current
+   DESCRIPTION
 	"the total size of the lv"
    ::= { lvEntry 3 }
 
 lvVgname OBJECT-TYPE
    SYNTAX       DisplayString
-   MAX-ACCESS   read-write 
-   STATUS       current 
-   DESCRIPTION 
+   MAX-ACCESS   read-write
+   STATUS       current
+   DESCRIPTION
 	"the vg that the lv belongs to "
    ::= { lvEntry 4 }
 
 lvSnapfrom OBJECT-TYPE
    SYNTAX       DisplayString
-   MAX-ACCESS   read-write 
-   STATUS       current 
-   DESCRIPTION 
+   MAX-ACCESS   read-write
+   STATUS       current
+   DESCRIPTION
 	"the source lv that the current lv snapfrom "
    ::= { lvEntry 5 }
 
-lvRowStatus OBJECT-TYPE 
-  SYNTAX      RowStatus 
-  MAX-ACCESS  read-write 
+lvRowStatus OBJECT-TYPE
+  SYNTAX      RowStatus
+  MAX-ACCESS  read-write
   STATUS      current
   DESCRIPTION
 	"The status of this conceptual row.
@@ -229,4 +228,4 @@ lvRowStatus OBJECT-TYPE
          createAndWait(5)."
    ::= { lvEntry 6 }
 
-END  
+END
