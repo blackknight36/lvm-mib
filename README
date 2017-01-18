@@ -1,4 +1,4 @@
-	       README file for lvm-mib Version: 0.1
+	       README file for lvm-mib Version: 0.2
 
 DISCLAIMER
 
@@ -15,41 +15,29 @@ TABLE OF CONTENTS
   Installation
   Usage
 
-
 INTRODUCTION
 
-  This package was developed by the NRCHPC (National Research Center for High Performance Comput  ers) of Chinese. And it is based on the net-snmp version 5.1.2 or higher. 
-  
-  It is used to do with LVM (Logic Volume Management) by net-snmp. Through it you can get the 
-  information of vg(volume group) and lv (logic volume) , and do the operation of lvcreate and 
-  lvremove also.
- 
-  This README file serves as a starting place to learn about the
-  software, but you must be aware of the usage of net-snmp.
+  This package is based on work by the NRCHPC (National Research Center for High Performance Computers) of China.
+  net-snmp version 5.1.2 or higher is required.
+
+  With this script you can monitor LVM volume and group stats via SNMP.  Disk spaced used and
+  free space are reported.
 
 INSTALLATION
-  mibs/LVM-MIB.txt    
-	 the text of the mibs , it should be placed in /use/share/snmp/mibs/
-  perl/mib_lvm.pl      
-	 the handler of the mibs, reponse the snmp request, palced in /etc/snmp better  
-  conf/EXAMPLE.conf    
-         a example of snmpd.conf, you can learn the configuration of snmpd from it.
-	 placed in /etc/snmp better   
-   
+  mibs/LVM-MIB.txt
+    MIB file for SNMP.  Place this file into /usr/share/snmp/mibs/
+
+  perl/mib_lvm.pl
+	 MIB handler script.
+
+  conf/EXAMPLE.conf
+     An example snmpd.conf file.
+
 USAGE
- Get operation
- snmptable -v 2c  -c public  -m all tcp:127.0.0.1:1161 vgTable   //get the info of all vgs
- snmptable -v 2c  -c public  -m all tcp;127.0.0.1;1161 lvTable   //get the info of all lvs 
+ * snmp v2
+    snmptable -v 2c -c public -m all 127.0.0.1:161 vgTable  //get the info of all vgs
+    snmptable -v 2c -c public -m all 127.0.0.1:161 lvTable  //get the info of all lvs
 
- Set operation
- Now you have lvcreated 5 lvs , and want to create the sixth lv,  name is lv6 , size is 1024M
- and in vg of SonD. The command as follows:
-
-    snmpset   -v 2c  -c private -m all tcp:127.0.0.1:1161 lvRowStatus.6 i 5  lvName s lv6   /
-         lvVgname s SonD  lvSize i 1024  lvRowStatus.6 i 2 
- 
- then the lv6 is crated successfully. 
-
- Now you want to lvremove the lv6 and it is in the lvTable is 6 ,the command as follows: 
-     snmpset   -v 2c  -c private -m all tcp:127.0.0.1:1161 lvRowStatus.6 i 6  
- then the lvs is removed succesfully.  
+ * snmp v3
+    snmptable -v3 -u <user> -l authPriv -a SHA -A <authpass> -x AES -X <privpass> -m all 127.0.0.1:161 vgTable
+    snmptable -v3 -u <user> -l authPriv -a SHA -A <authpass> -x AES -X <privpass> -m all 127.0.0.1:161 lvTable
