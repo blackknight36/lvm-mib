@@ -7,6 +7,8 @@
 #            National Research Center
 #          for High Performace Computers
 #
+# Updated to work with LVM2 by Michael Watters <michael.watters@dart.biz>
+#
 # Create Date:      2005/05/28
 #
 #         CopyRight (C) 2005 NRCHPC, China
@@ -26,6 +28,7 @@
 $|=1;
 
 use strict;
+use Data::Dumper qw(Dumper);
 
 my $place = ".1.3.6.1.4.1.19039.23";
 
@@ -36,29 +39,18 @@ my $lvinfo = "/tmp/lvinfo" ;
 
 while (<>){
 
-  if (m!^PING!){
+  #print Dumper &get_vg_info;
+  #print Dumper &get_all_lvs;
+
+  chomp;
+
+  if (uc($_) eq 'PING') {
     print "PONG\n";
     next;
   }
 
   chomp ( my $cmd = $_ ) ;
   chomp ( my $req = <> ) ;
-
-  if ($cmd eq 'set' ) {
-     #Now we inter into set operation
-     chomp (my $arg = <> );
-     my @args = split (/ / , $arg);
-     if ($req =~ /^$place.4.1.6.(\d+)$/) {
-       if ( $args[1] == 5 )  { unlink $lvinfo  ; }
-       else                     { &tableappend($lvinfo, $args[1] ) ; }
-    }
-    elsif ($req =~ /^$place.4.1.([1-4])$/) {
-         open INFO , ">>$lvinfo";
-     print INFO "$1 : $args[1]\n" ;
-     close INFO ;
-    }
-    exit 0;
-  }
 
   if (($cmd eq 'get') && (($req eq $place) || ($req =~ /^$place.4.1.[1-5]$/)) ) {  print "NONE\n"; next; }
   if (($cmd eq 'get') && ($req =~ /^$place.4.1.6.\d+$/))            {  print "$req\ninteger\n2\n";  next; }
@@ -133,52 +125,43 @@ sub getnext {
 }
 
 sub get_vg_info {
-    open (FILE , "/proc/lvm/global") || return undef ;
+    open (FILE , "sudo /usr/sbin/vgs --noheadings -o vg_name,vg_size --units b|") || return undef ;
     my ( @vgname , @vgs ) ;
-    while (<FILE>){
-    chomp ;
-        next unless (/^VG:/) ;
-    push  @vgname , (split (/ /))[2] ;
+
+    while (my $row = <FILE>) {
+        $row = trim($row);
+        chomp($row);
+
+        my ($name, $size) = split(/\s+/, $row);
+        $size =~ s/B//;
+        $size = int($size);
+        my %vg = ( 'vgname' => $name, 'size' => $size );
+        push @vgs, \%vg ;
     }
-    close FILE ;
-    for (my $i = 0; $i< @vgname ; $i++ ) {
-        my %vg = ( 'vgname' => $vgname[$i] );
-    my $file = "/proc/lvm/VGs/" . $vgname[$i] ."/group" ;
-        my %hash ;
-    &read_file ($file , \%vg);
-    $vg{"size"} = $vg{"size"} >> 10 ;
-    $vgs[$i] = \%vg ;
-   }
+
    return @vgs ;
 }
 
 sub get_all_lvs  {
     my @lvs = ();
-    open (FILE , "lvscan |") || return undef ;
-    while (<FILE>) {
-    chomp ;
-    last unless (/[\"\']([\w\/]+)[\"\']\s+\[(.*)B\]/) ;
-    my @array =  split (/\// , $1);
-    my %lv = (
-       vgname =>  $array[2]  ,
-       lvname =>  $array[3]  ,
-       lvsize =>  &get_size($2) ,
-       snapfrom => 'NULL'
-    );
-        if (/ Snapcopy /) {
-        @array = split (/ / );
-        $lv{'snapfrom'} = $array[$#array] ;
-        }
-    push (@lvs , \%lv);
-   }
-   close FILE ;
-   return @lvs ;
-}
 
-sub get_size {
-    my ($value , $item ) = split (/ / , $_[0] ) ;
-    return ( $value * 1024 ) if ( $item eq 'G' ) ;
-    return $value ;
+    open (FILE , "sudo lvs --noheadings -o lv_name,vg_name,lv_size,origin --units b|") || return undef ;
+
+    while (my $row = <FILE>) {
+        $row = trim($row);
+        chomp($row);
+
+        my ($lv_name, $vg_name, $lv_size, $origin) = split(/\s+/, $row);
+
+        $lv_size =~ s/B//;
+        $lv_size = int($lv_size);
+
+        my %lv = ( vgname => $vg_name, lvname => $lv_name, lvsize => $lv_size, snapfrom => $origin );
+        push (@lvs , \%lv);
+    }
+
+   close FILE;
+   return @lvs;
 }
 
 sub read_file {
@@ -200,24 +183,9 @@ sub read_file {
     return 0;
 }
 
-
-sub tableappend {
-    my %hash ;
-    &read_file($_[0] , \%hash);
-    unlink $_[0] ;
-    return 1 unless ((defined $hash{2}) && (defined $hash{4}) ) ;
-    if ($_[1] == 2 ) {
-    `lvcreate -L $hash{3} -n $hash{2} $hash{4} 1>/dev/null 2>&1 `;
-    }
-    elsif ($_[1] == 1) {
-    `lvcreate -s  -n $hash{2}  $hash{4} 1>/dev/null 2>&1 `;
-    }
-    elsif ($_[1] == 4) {
-    `lvcreate -m  -n $hash{2}  $hash{4} 1>/dev/null 2>&1 `;
-    }
-    elsif ($_[1] == 6) {
-    my $lv = "/dev/" . $hash{4} . "/" . $hash{2} ;
-    `lvremove -f  $lv  1>/dev/null  2>&1 &` ;
-    }
-    return 0 ;
+sub trim($) {
+  my $string = shift;
+  $string =~ s/^\s+//;
+  $string =~ s/\s+$//;
+  return $string;
 }
