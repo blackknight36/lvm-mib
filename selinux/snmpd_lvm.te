@@ -1,0 +1,10 @@
+#============= snmpd_t ==============
+allow snmpd_t lvm_control_t:chr_file { getattr ioctl open read write };
+allow snmpd_t lvm_etc_t:file { getattr open read };
+allow snmpd_t lvm_lock_t:dir { add_name remove_name write };
+allow snmpd_t lvm_lock_t:file { append create getattr lock open read unlink };
+allow snmpd_t lvm_metadata_t:file { getattr open read };
+allow snmpd_t lvm_t:unix_stream_socket connectto;
+allow snmpd_t self:capability { audit_write sys_resource };
+allow snmpd_t self:netlink_audit_socket { create nlmsg_relay };
+allow snmpd_t self:process setrlimit;
