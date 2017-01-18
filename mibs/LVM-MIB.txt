@@ -111,28 +111,28 @@ lvCount OBJECT-TYPE
 	"the number of the created lvs in the vg"
    ::= { vgEntry 4 }
 
-lvOpen OBJECT-TYPE
+vgExtentSize OBJECT-TYPE
    SYNTAX       Integer32(0..256)
    MAX-ACCESS   read-only
    STATUS       current
    DESCRIPTION
-	"the number of the opened lvs in the vg"
+	"the size of the physical extents in the vg"
    ::= { vgEntry 5 }
 
-peSize OBJECT-TYPE
+vgExtentCount OBJECT-TYPE
    SYNTAX       Integer32
    MAX-ACCESS   read-only
    STATUS       current
    DESCRIPTION
-	"the size of the pe"
+	"the number of physical extents in the vg"
    ::= { vgEntry 6 }
 
-peAlloc OBJECT-TYPE
+vgFreeCount OBJECT-TYPE
    SYNTAX       Integer32
    MAX-ACCESS   read-only
    STATUS       current
    DESCRIPTION
-	"the allocated count of the pe"
+	"the number of free extents in the vg"
    ::= { vgEntry 7 }
 
 lvNumber  OBJECT-TYPE

@@ -72,9 +72,9 @@ while (<>){
   if ($req =~ /^$place.4.1.([1-6]).(\d+)$/) {
     CASE_LV:{
         ($1 == 1 ) && do {print "$req\ninteger\n$2\n"                              ; last CASE_LV ; };
-        ($1 == 2 ) && do {print "$req\nstring\n", $lvs[$2-1]->{'lvname'},"\n"      ; last CASE_LV ; };
-        ($1 == 3 ) && do {print "$req\ninteger\n",$lvs[$2-1]->{'lvsize'},"\n"      ; last CASE_LV ; };
-        ($1 == 4 ) && do {print "$req\nstring\n", $lvs[$2-1]->{'vgname'},"\n"      ; last CASE_LV ; };
+        ($1 == 2 ) && do {print "$req\nstring\n", $lvs[$2-1]->{'lv_name'},"\n"      ; last CASE_LV ; };
+        ($1 == 3 ) && do {print "$req\ninteger\n",$lvs[$2-1]->{'lv_size'},"\n"      ; last CASE_LV ; };
+        ($1 == 4 ) && do {print "$req\nstring\n", $lvs[$2-1]->{'vg_name'},"\n"      ; last CASE_LV ; };
         ($1 == 5 ) && do {print "$req\nstring\n", $lvs[$2-1]->{'snapfrom'},"\n"    ; last CASE_LV ; };
         ($1 == 6 ) && do {print "$req\ninteger\n2\n";                                last CASE_LV ; };
        }
@@ -83,12 +83,12 @@ while (<>){
   elsif ($req =~ /^$place.2.1.([1-7]).([1-$vgnum])$/) {
     CASE_VG:{
         ($1 == 1 ) && do {print "$req\ninteger\n$2\n"                           ; last CASE_VG ; };
-        ($1 == 2 ) && do {print "$req\nstring\n", $vgs[$2-1]->{'vgname'} , "\n" ; last CASE_VG ; }; 
-        ($1 == 3 ) && do {print "$req\ninteger\n",$vgs[$2-1]->{'size'} , "\n" ; last CASE_VG ; };
-        ($1 == 4 ) && do {print "$req\ninteger\n",$vgs[$2-1]->{'lvcurrent'}, "\n" ; last CASE_VG ; };
-        ($1 == 5 ) && do {print "$req\ninteger\n",$vgs[$2-1]->{'lvopen'},  "\n" ; last CASE_VG ; };
-        ($1 == 6 ) && do {print "$req\ninteger\n",$vgs[$2-1]->{'pesize'},  "\n" ; last CASE_VG ; };
-        ($1 == 7 ) && do {print "$req\ninteger\n",$vgs[$2-1]->{'peallocated'}, "\n" ; last CASE_VG ; };
+        ($1 == 2 ) && do {print "$req\nstring\n", $vgs[$2-1]->{'vg_name'} , "\n" ; last CASE_VG ; }; 
+        ($1 == 3 ) && do {print "$req\ninteger\n",$vgs[$2-1]->{'vg_size'} , "\n" ; last CASE_VG ; };
+        ($1 == 4 ) && do {print "$req\ninteger\n",$vgs[$2-1]->{'lv_count'}, "\n" ; last CASE_VG ; };
+        ($1 == 5 ) && do {print "$req\ninteger\n",$vgs[$2-1]->{'vg_extent_size'},  "\n" ; last CASE_VG ; };
+        ($1 == 6 ) && do {print "$req\ninteger\n",$vgs[$2-1]->{'vg_extent_count'},  "\n" ; last CASE_VG ; };
+        ($1 == 7 ) && do {print "$req\ninteger\n",$vgs[$2-1]->{'vg_free_count'},  "\n" ; last CASE_VG ; };
     }
   }
 
@@ -125,17 +125,33 @@ sub getnext {
 }
 
 sub get_vg_info {
-    open (FILE , "sudo /usr/sbin/vgs --noheadings -o vg_name,vg_size --units b|") || return undef ;
+    open (FILE , "sudo /usr/sbin/vgs --noheadings -o vg_name,vg_size,lv_count,vg_extent_size,vg_extent_count,vg_free_count --units b|") || return undef ;
     my ( @vgname , @vgs ) ;
 
     while (my $row = <FILE>) {
         $row = trim($row);
         chomp($row);
 
-        my ($name, $size) = split(/\s+/, $row);
-        $size =~ s/B//;
-        $size = int($size);
-        my %vg = ( 'vgname' => $name, 'size' => $size );
+        my ($vg_name, $vg_size, $lv_count, $vg_extent_size, $vg_extent_count, $vg_free_count) = split(/\s+/, $row);
+
+        $vg_size =~ s/B//;
+        $vg_size = int($vg_size);
+
+        $vg_extent_size =~ s/B//;
+        $vg_extent_size = int($vg_extent_size);
+
+        $vg_extent_count = int($vg_extent_count);
+        $vg_free_count = int($vg_free_count);
+
+        my %vg = (
+            'vg_name' => $vg_name,
+            'vg_size' => $vg_size,
+            'lv_count' => $lv_count,
+            'vg_extent_size' => $vg_extent_size,
+            'vg_extent_count' => $vg_extent_count,
+            'vg_free_count' => $vg_free_count
+         );
+        #print Dumper \%vg;
         push @vgs, \%vg ;
     }
 
@@ -156,7 +172,12 @@ sub get_all_lvs  {
         $lv_size =~ s/B//;
         $lv_size = int($lv_size);
 
-        my %lv = ( vgname => $vg_name, lvname => $lv_name, lvsize => $lv_size, snapfrom => $origin );
+        my %lv = (
+            'vg_name' => $vg_name,
+            'lv_name' => $lv_name,
+            'lv_size' => $lv_size,
+            'snapfrom' => $origin
+        );
         push (@lvs , \%lv);
     }
 
