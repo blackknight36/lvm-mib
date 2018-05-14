@@ -119,7 +119,7 @@ sub getnext {
 }
 
 sub get_vg_info {
-    open (FILE , "sudo /usr/sbin/vgs --noheadings -o vg_name,vg_size,lv_count,vg_extent_size,vg_extent_count,vg_free_count --units b|") || return undef ;
+    open (FILE , "sudo vgs --noheadings -o vg_name,vg_size,lv_count,vg_extent_size,vg_extent_count,vg_free_count --units k|") || return undef ;
     my ( @vgname , @vgs ) ;
 
     while (my $row = <FILE>) {
@@ -128,10 +128,10 @@ sub get_vg_info {
 
         my ($vg_name, $vg_size, $lv_count, $vg_extent_size, $vg_extent_count, $vg_free_count) = split(/\s+/, $row);
 
-        $vg_size =~ s/B//;
+        $vg_size =~ s/k//;
         $vg_size = int($vg_size);
 
-        $vg_extent_size =~ s/B//;
+        $vg_extent_size =~ s/k//;
         $vg_extent_size = int($vg_extent_size);
 
         $vg_extent_count = int($vg_extent_count);
@@ -154,7 +154,7 @@ sub get_vg_info {
 sub get_all_lvs  {
     my @lvs = ();
 
-    open (FILE , "sudo lvs --noheadings -o lv_name,vg_name,lv_size,origin --units b|") || return undef ;
+    open (FILE , "sudo lvs --noheadings -o lv_name,vg_name,lv_size,origin --units k|") || return undef ;
 
     while (my $row = <FILE>) {
         $row = trim($row);
@@ -162,7 +162,7 @@ sub get_all_lvs  {
 
         my ($lv_name, $vg_name, $lv_size, $origin) = split(/\s+/, $row);
 
-        $lv_size =~ s/B//;
+        $lv_size =~ s/k//;
         $lv_size = int($lv_size);
 
         my %lv = (
